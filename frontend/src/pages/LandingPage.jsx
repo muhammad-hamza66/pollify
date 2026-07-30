@@ -29,15 +29,15 @@ export default function LandingPage() {
           <div className="flex items-center gap-2">
             <ThemeToggle />
             {status === "authed" ? (
-              <Link to="/dashboard" className="btn bg-primary-600 text-white hover:bg-primary-700 px-4 py-2 text-sm">
+              <Link to="/dashboard" className="btn bg-gradient-to-r from-primary-600 to-accent-600 text-white hover:opacity-90 shadow-glow px-5 py-2.5 text-sm">
                 Go to dashboard
               </Link>
             ) : (
               <>
-                <Link to="/login" className="btn px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800">
+                <Link to="/login" className="btn text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 px-4 py-2 text-sm">
                   Log in
                 </Link>
-                <Link to="/register" className="btn bg-primary-600 text-white hover:bg-primary-700 px-4 py-2 text-sm">
+                <Link to="/register" className="btn bg-gradient-to-r from-primary-600 to-accent-600 text-white hover:opacity-90 shadow-glow px-5 py-2.5 text-sm">
                   Sign up free
                 </Link>
               </>
@@ -61,10 +61,10 @@ export default function LandingPage() {
             roll in, and discuss the results with people who actually showed up to vote.
           </p>
           <div className="flex items-center justify-center gap-3">
-            <Link to="/register" className="btn bg-primary-600 text-white hover:bg-primary-700 px-6 py-3">
+            <Link to="/register" className="btn bg-gradient-to-r from-primary-600 to-accent-600 text-white hover:opacity-90 shadow-glow px-8 py-3.5">
               Start polling free <ArrowRight className="h-4 w-4" />
             </Link>
-            <Link to="/login" className="btn border border-gray-200 dark:border-gray-700 px-6 py-3 text-gray-700 dark:text-gray-200">
+            <Link to="/login" className="btn border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 px-8 py-3.5">
               I have an account
             </Link>
           </div>

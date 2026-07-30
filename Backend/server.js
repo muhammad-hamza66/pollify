@@ -32,11 +32,15 @@ app.get("/", (req, res) => {
     res.send("Pollify API is active and working");
 });
 
-const startServer = async () => {
-    await connectDB();
-    app.listen(PORT, () => {
-        console.log(`Server is running on http://localhost:${PORT}`);
-    });
-};
 
-startServer();
+await connectDB();
+
+export default app;
+// const startServer = async () => {
+//     await connectDB();
+//     app.listen(PORT, () => {
+//         console.log(`Server is running on http://localhost:${PORT}`);
+//     });
+// };
+
+// startServer();

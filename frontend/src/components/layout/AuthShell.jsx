@@ -1,8 +1,8 @@
 import { Outlet, Navigate } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
-import { Vote } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import ThemeToggle from "./ThemeToggle";
+import logo from "../../assets/logo.png";
 
 // Layout for /login, /register, /forgot-password etc. Redirects away if
 // already authenticated so a logged-in user can't land back on auth screens.
@@ -16,8 +16,8 @@ export default function AuthShell() {
         <div className="absolute -right-24 -top-24 h-96 w-96 rounded-full bg-white/10 blur-3xl" />
         <div className="absolute -left-24 -bottom-24 h-96 w-96 rounded-full bg-white/10 blur-3xl" />
         <div className="relative flex items-center gap-2 font-bold text-xl">
-          <span className="h-9 w-9 rounded-xl bg-white/15 flex items-center justify-center">
-            <Vote className="h-5 w-5" />
+          <span className="h-10 w-10 flex items-center justify-center overflow-hidden">
+            <img src={logo} alt="Pollify" className="h-8 w-auto max-w-full object-contain" />
           </span>
           Pollify
         </div>
@@ -34,8 +34,8 @@ export default function AuthShell() {
       <div className="flex flex-col">
         <div className="flex justify-between items-center p-6">
           <div className="lg:hidden flex items-center gap-2 font-bold">
-            <span className="h-8 w-8 rounded-xl bg-gradient-to-br from-primary-600 to-accent-600 flex items-center justify-center">
-              <Vote className="h-4 w-4 text-white" />
+            <span className="h-10 w-10 flex items-center justify-center overflow-hidden">
+              <img src={logo} alt="Pollify" className="h-8 w-auto max-w-full object-contain" />
             </span>
             Pollify
           </div>

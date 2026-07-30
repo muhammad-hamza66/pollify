@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { Vote, BarChart3, Users, Zap, Star, ArrowRight, MessageCircle, Bookmark } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import ThemeToggle from "../components/layout/ThemeToggle";
+import logo from "../assets/logo.png";
 
 const features = [
   { icon: Vote, title: "5 poll formats", desc: "Single choice, yes/no, star ratings, image polls, and open-ended questions." },
@@ -20,8 +21,8 @@ export default function LandingPage() {
       <header className="sticky top-0 z-30 border-b border-gray-100 dark:border-gray-800 bg-white/80 dark:bg-surface-dark/80 backdrop-blur">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2 font-bold text-lg">
-            <span className="h-8 w-8 rounded-xl bg-gradient-to-br from-primary-600 to-accent-600 flex items-center justify-center">
-              <Vote className="h-4 w-4 text-white" />
+            <span className="h-10 w-10 flex items-center justify-center overflow-hidden">
+              <img src={logo} alt="Pollify" className="h-8 w-auto max-w-full object-contain" />
             </span>
             Pollify
           </div>

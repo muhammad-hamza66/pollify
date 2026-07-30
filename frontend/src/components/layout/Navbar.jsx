@@ -1,10 +1,11 @@
 import { useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Search, Vote, LogOut, Settings, User as UserIcon, Menu } from "lucide-react";
+import { Search, LogOut, Settings, User as UserIcon, Menu } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useClickOutside } from "../../hooks/useClickOutside";
 import Avatar from "../ui/Avatar";
 import ThemeToggle from "./ThemeToggle";
+import logo from "../../assets/logo.png";
 import NotificationBell from "./NotificationBell";
 
 export default function Navbar({ onMenuClick }) {
@@ -28,8 +29,8 @@ export default function Navbar({ onMenuClick }) {
         </button>
 
         <Link to={status === "authed" ? "/dashboard" : "/"} className="flex items-center gap-2 font-bold text-lg shrink-0">
-          <span className="h-8 w-8 rounded-xl bg-gradient-to-br from-primary-600 to-accent-600 flex items-center justify-center">
-            <Vote className="h-4 w-4 text-white" />
+          <span className="h-10 w-10 flex items-center justify-center overflow-hidden">
+            <img src={logo} alt="Pollify" className="h-8 w-auto max-w-full object-contain" />
           </span>
           <span className="hidden sm:inline">Pollify</span>
         </Link>

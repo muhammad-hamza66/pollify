@@ -5,7 +5,8 @@ import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 import compression from "compression";
-import mongoSanitize from "express-mongo-sanitize";
+// express-mongo-sanitize is not used — Express 5 makes req.query read-only
+// and the package crashes trying to overwrite it. We use a hand-rolled sanitizer below.
 import rateLimit from "express-rate-limit";
 import "dotenv/config";
 import { connectDB } from "./config/db.js";
@@ -70,8 +71,26 @@ app.use(cors({
 app.use(express.json({ limit: "10kb" }));
 app.use(express.urlencoded({ extended: false, limit: "10kb" }));
 
-// ─── Strip MongoDB operators from all input ($gt, $where, etc.) ─────────
-app.use(mongoSanitize());
+// ─── Strip MongoDB operators ($gt, $where, etc.) from body & params ──────
+// Express 5 made req.query a read-only getter, so express-mongo-sanitize
+// crashes trying to reassign it. This custom middleware skips req.query
+// (query-string values are always strings, never objects, so injection
+// via query params is impossible without express.json parsing them).
+const _stripOperators = (obj) => {
+    if (!obj || typeof obj !== "object" || Array.isArray(obj)) return;
+    for (const key of Object.keys(obj)) {
+        if (key.startsWith("$") || key.includes(".")) {
+            delete obj[key];
+        } else {
+            _stripOperators(obj[key]);
+        }
+    }
+};
+app.use((req, _res, next) => {
+    if (req.body)   _stripOperators(req.body);
+    if (req.params) _stripOperators(req.params);
+    next();
+});
 
 // ─── Rate limiters ─────────────────────────────────────────────────────────
 const authLimiter = rateLimit({

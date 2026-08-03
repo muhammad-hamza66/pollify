@@ -1,4 +1,4 @@
-import jwt from 'jsonwebtoken';
+import jwt from "jsonwebtoken";
 import User from "../models/User.js";
 import Poll from "../models/Poll.js";
 import Comment from "../models/Comment.js";
@@ -6,26 +6,80 @@ import { uploadToCloudinary } from "../config/cloudinary.js";
 import { generateOtp, otpExpiry, otpValid } from "../utils/otp.js";
 import { sendOtpEmail } from "../config/mailer.js";
 
-const makeToken = (id) => jwt.sign({ id }, process.env.JWT_SECRET || 'secret', { expiresIn: "7d" });
+const JWT_SECRET = process.env.JWT_SECRET;
 
+// ─── Helpers ────────────────────────────────────────────────────────────────
+
+const makeToken = (id) =>
+    jwt.sign({ id }, JWT_SECRET, { expiresIn: "7d" });
+
+// Only expose safe, non-sensitive fields to the client
 const clean = (u) => ({
     _id: u._id,
     name: u.name,
     email: u.email,
     username: u.username,
     avatar: u.avatar,
-    bio: u.bio
+    bio: u.bio,
 });
 
-// Register user
+// Password strength: min 8 chars, at least one uppercase, one number
+const validatePassword = (password) => {
+    if (!password || typeof password !== "string") return "Password is required";
+    if (password.length < 8) return "Password must be at least 8 characters";
+    if (password.length > 128) return "Password is too long";
+    if (!/[A-Z]/.test(password)) return "Password must contain at least one uppercase letter";
+    if (!/[0-9]/.test(password)) return "Password must contain at least one number";
+    return null;
+};
+
+// Username rules: 3-30 alphanumeric + underscore, no reserved words
+const RESERVED_USERNAMES = new Set([
+    "admin", "root", "api", "support", "help", "me", "system",
+    "pollify", "staff", "moderator", "null", "undefined",
+]);
+
+const validateUsername = (username) => {
+    if (!username || typeof username !== "string") return "Username is required";
+    if (!/^[a-zA-Z0-9_]{3,30}$/.test(username))
+        return "Username must be 3-30 characters using only letters, numbers, and underscores";
+    if (RESERVED_USERNAMES.has(username.toLowerCase()))
+        return "This username is reserved";
+    return null;
+};
+
+// ─── Register ────────────────────────────────────────────────────────────────
 export const registerUser = async (req, res) => {
     try {
         const { name, email, username, password } = req.body;
-        if (!name || !email || !username || !password) {
+
+        // Type guards (mongo-sanitize strips operators but we still need string checks)
+        if (typeof name !== "string" || typeof email !== "string" ||
+            typeof username !== "string" || typeof password !== "string") {
+            return res.status(400).json({ message: "Invalid input format" });
+        }
+
+        if (!name.trim() || !email.trim()) {
             return res.status(400).json({ message: "All fields are required" });
         }
 
-        const exist = await User.findOne({ $or: [{ email }, { username }] });
+        const usernameError = validateUsername(username.trim());
+        if (usernameError) return res.status(400).json({ message: usernameError });
+
+        const passwordError = validatePassword(password);
+        if (passwordError) return res.status(400).json({ message: passwordError });
+
+        // Basic email format check
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+            return res.status(400).json({ message: "Invalid email address" });
+        }
+
+        const exist = await User.findOne({
+            $or: [
+                { email: email.trim().toLowerCase() },
+                { username: username.trim() },
+            ],
+        });
         if (exist) {
             return res.status(400).json({ message: "User with this email or username already exists" });
         }
@@ -41,38 +95,45 @@ export const registerUser = async (req, res) => {
 
         const otp = generateOtp();
         await User.create({
-            name,
-            email,
-            username,
+            name: name.trim(),
+            email: email.trim().toLowerCase(),
+            username: username.trim(),
             password,
             avatar,
             otp,
-            otpExpires: otpExpiry()
+            otpExpires: otpExpiry(),
         });
 
         try {
-            await sendOtpEmail(email, otp, "verify your Pollify account");
+            await sendOtpEmail(email.trim().toLowerCase(), otp, "verify your Pollify account");
         } catch (e) {
             console.warn("Email send skipped:", e.message);
         }
 
-        res.status(201).json({
-            needsVerification: true,
-            email
-        });
+        res.status(201).json({ needsVerification: true, email: email.trim().toLowerCase() });
     } catch (err) {
-        res.status(500).json({ message: err.message });
+        console.error("registerUser error:", err.message);
+        res.status(500).json({ message: "Registration failed. Please try again." });
     }
 };
 
-// Verify OTP
+// ─── Verify OTP ──────────────────────────────────────────────────────────────
 export const verifyOtp = async (req, res) => {
     try {
         const { email, otp } = req.body;
-        const user = await User.findOne({ email });
-        if (!user) return res.status(404).json({ message: "User not found" });
+        if (typeof email !== "string" || typeof otp !== "string") {
+            return res.status(400).json({ message: "Invalid input" });
+        }
 
-        if (!user.isVerified && !otpValid(user, otp)) {
+        const user = await User.findOne({ email: email.toLowerCase() });
+        // Always return the same message to prevent user enumeration
+        if (!user) return res.status(400).json({ message: "Invalid or expired OTP" });
+
+        if (user.isVerified) {
+            return res.json({ token: makeToken(user._id), user: clean(user) });
+        }
+
+        if (!otpValid(user, otp.trim())) {
             return res.status(400).json({ message: "Invalid or expired OTP" });
         }
 
@@ -81,43 +142,50 @@ export const verifyOtp = async (req, res) => {
         user.otpExpires = undefined;
         await user.save();
 
-        res.json({
-            token: makeToken(user._id),
-            user: clean(user)
-        });
+        res.json({ token: makeToken(user._id), user: clean(user) });
     } catch (err) {
-        res.status(500).json({ message: err.message });
+        console.error("verifyOtp error:", err.message);
+        res.status(500).json({ message: "Verification failed. Please try again." });
     }
 };
 
-// Resend OTP
+// ─── Resend OTP ──────────────────────────────────────────────────────────────
 export const resendOtp = async (req, res) => {
     try {
-        const user = await User.findOne({ email: req.body.email });
-        if (!user) return res.status(404).json({ message: "User not found" });
-
-        user.otp = generateOtp();
-        user.otpExpires = otpExpiry();
-        await user.save();
-
-        try {
-            await sendOtpEmail(user.email, user.otp, "verify your Pollify account");
-        } catch (e) {
-            console.warn("Email send skipped:", e.message);
+        const { email } = req.body;
+        if (typeof email !== "string") {
+            return res.status(400).json({ message: "Invalid input" });
         }
 
-        res.json({ message: "OTP SENT" });
+        const user = await User.findOne({ email: email.toLowerCase() });
+        // Always return the same response to prevent user enumeration
+        if (user && !user.isVerified) {
+            user.otp = generateOtp();
+            user.otpExpires = otpExpiry();
+            await user.save();
+            sendOtpEmail(user.email, user.otp, "verify your Pollify account").catch(() => {});
+        }
+
+        res.json({ message: "If that account exists, a new code was sent." });
     } catch (err) {
-        res.status(500).json({ message: err.message });
+        console.error("resendOtp error:", err.message);
+        res.status(500).json({ message: "An error occurred. Please try again." });
     }
 };
 
-// Login user
+// ─── Login ───────────────────────────────────────────────────────────────────
 export const login = async (req, res) => {
     try {
         const { email, password } = req.body;
-        const user = await User.findOne({ email });
-        if (!user || !(await user.comparePassword(password))) {
+        if (typeof email !== "string" || typeof password !== "string") {
+            return res.status(400).json({ message: "Invalid input format" });
+        }
+
+        const user = await User.findOne({ email: email.trim().toLowerCase() });
+        // Always compare password (even for non-existent users) to prevent timing attacks
+        const passwordMatch = user ? await user.comparePassword(password) : false;
+
+        if (!user || !passwordMatch) {
             return res.status(401).json({ message: "Invalid email or password" });
         }
 
@@ -125,20 +193,18 @@ export const login = async (req, res) => {
             return res.status(403).json({
                 message: "Please verify your email first",
                 needsVerification: true,
-                email
+                email: user.email,
             });
         }
 
-        res.json({
-            token: makeToken(user._id),
-            user: clean(user)
-        });
+        res.json({ token: makeToken(user._id), user: clean(user) });
     } catch (err) {
-        res.status(500).json({ message: err.message });
+        console.error("login error:", err.message);
+        res.status(500).json({ message: "Login failed. Please try again." });
     }
 };
 
-// Update profile
+// ─── Update profile ──────────────────────────────────────────────────────────
 export const updateProfile = async (req, res) => {
     try {
         const { name, username, bio } = req.body;
@@ -146,12 +212,16 @@ export const updateProfile = async (req, res) => {
         if (!user) return res.status(404).json({ message: "User not found" });
 
         if (username && username !== user.username) {
-            const taken = await User.findOne({ username });
+            const usernameError = validateUsername(username.trim());
+            if (usernameError) return res.status(400).json({ message: usernameError });
+
+            const taken = await User.findOne({ username: username.trim() });
             if (taken) return res.status(400).json({ message: "Username already taken" });
-            user.username = username;
+            user.username = username.trim();
         }
-        if (name) user.name = name;
-        if (bio !== undefined) user.bio = bio;
+
+        if (name && typeof name === "string") user.name = name.trim().slice(0, 100);
+        if (bio !== undefined && typeof bio === "string") user.bio = bio.trim().slice(0, 160);
 
         if (req.file) {
             try {
@@ -164,34 +234,36 @@ export const updateProfile = async (req, res) => {
         await user.save();
         res.json({ user: clean(user) });
     } catch (err) {
-        res.status(500).json({ message: err.message });
+        console.error("updateProfile error:", err.message);
+        res.status(500).json({ message: "Profile update failed. Please try again." });
     }
 };
 
-// Change password
+// ─── Change password ─────────────────────────────────────────────────────────
 export const changePassword = async (req, res) => {
     try {
         const { currentPassword, newPassword } = req.body;
-        if (!newPassword || newPassword.length < 8) {
-            return res.status(400).json({ message: "New Password must be at least 8 characters" });
-        }
+
+        const passwordError = validatePassword(newPassword);
+        if (passwordError) return res.status(400).json({ message: passwordError });
 
         const user = await User.findById(req.userId);
         if (!user) return res.status(404).json({ message: "User not found" });
 
         if (!(await user.comparePassword(currentPassword))) {
-            return res.status(400).json({ message: "Current Password is incorrect" });
+            return res.status(400).json({ message: "Current password is incorrect" });
         }
 
         user.password = newPassword;
         await user.save();
         res.json({ message: "Password updated" });
     } catch (err) {
-        res.status(500).json({ message: err.message });
+        console.error("changePassword error:", err.message);
+        res.status(500).json({ message: "Password change failed. Please try again." });
     }
 };
 
-// Delete account
+// ─── Delete account ──────────────────────────────────────────────────────────
 export const deleteAccount = async (req, res) => {
     try {
         const id = req.userId;
@@ -203,13 +275,14 @@ export const deleteAccount = async (req, res) => {
         await Poll.updateMany({}, { $pull: { votes: { user: id } } });
         await User.findByIdAndDelete(id);
 
-        res.json({ message: "Account Deleted" });
+        res.json({ message: "Account deleted" });
     } catch (err) {
-        res.status(500).json({ message: err.message });
+        console.error("deleteAccount error:", err.message);
+        res.status(500).json({ message: "Account deletion failed. Please try again." });
     }
 };
 
-// Get current user details
+// ─── Get current user ────────────────────────────────────────────────────────
 export const getMe = async (req, res) => {
     try {
         const user = await User.findById(req.userId);
@@ -217,7 +290,7 @@ export const getMe = async (req, res) => {
 
         const [created, voted] = await Promise.all([
             Poll.countDocuments({ creator: user._id }),
-            Poll.countDocuments({ "votes.user": user._id })
+            Poll.countDocuments({ "votes.user": user._id }),
         ]);
 
         res.json({
@@ -225,10 +298,11 @@ export const getMe = async (req, res) => {
             stats: {
                 created,
                 voted,
-                bookmarked: user.bookmarks ? user.bookmarks.length : 0
-            }
+                bookmarked: user.bookmarks ? user.bookmarks.length : 0,
+            },
         });
     } catch (err) {
-        res.status(500).json({ message: err.message });
+        console.error("getMe error:", err.message);
+        res.status(500).json({ message: "Failed to load user. Please try again." });
     }
 };

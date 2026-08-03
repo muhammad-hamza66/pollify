@@ -2,73 +2,92 @@ import User from "../models/User.js";
 import { sendOtpEmail } from "../config/mailer.js";
 import { generateOtp, otpExpiry, otpValid } from "../utils/otp.js";
 
-// if user forgot the password send an email OTP
+// Password strength validator (mirrored from authController for DRY consistency)
+const validatePassword = (password) => {
+    if (!password || typeof password !== "string") return "Password is required";
+    if (password.length < 8) return "Password must be at least 8 characters";
+    if (password.length > 128) return "Password is too long";
+    if (!/[A-Z]/.test(password)) return "Password must contain at least one uppercase letter";
+    if (!/[0-9]/.test(password)) return "Password must contain at least one number";
+    return null;
+};
+
+// ─── Forgot password ─────────────────────────────────────────────────────────
+// Always returns the same response to prevent email enumeration
 export const forgotPassword = async (req, res) => {
     try {
-        const user = await User.findOne({ email: req.body.email });
-        if (!user) return res.status(404).json({
-            message: "No account with this email"
-        });
-
-        user.otp = generateOtp();
-        user.otpExpires = otpExpiry();
-
-        await user.save();
-        try {
-            await sendOtpEmail(user.email, user.otp, "reset your Pollify password");
-        } catch (e) {
-            console.warn("Email send skipped:", e.message);
+        const { email } = req.body;
+        if (typeof email !== "string") {
+            return res.status(400).json({ message: "Invalid input" });
         }
 
-        res.json({
-            message: "OTP sent to your email"
-        });
+        const user = await User.findOne({ email: email.trim().toLowerCase() });
+
+        // Process silently — never reveal whether the email exists
+        if (user) {
+            user.otp = generateOtp();
+            user.otpExpires = otpExpiry();
+            await user.save();
+            sendOtpEmail(user.email, user.otp, "reset your Pollify password").catch(() => {});
+        }
+
+        // Same message regardless of whether user was found
+        res.json({ message: "If that email has an account, a reset code was sent." });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        console.error("forgotPassword error:", error.message);
+        res.status(500).json({ message: "An error occurred. Please try again." });
     }
 };
 
+// ─── Verify reset OTP ────────────────────────────────────────────────────────
 export const verifyResetOtp = async (req, res) => {
     try {
         const { email, otp } = req.body;
-        const user = await User.findOne({ email });
-        if (!user) return res.status(404).json({
-            message: "User not found"
-        });
+        if (typeof email !== "string" || typeof otp !== "string") {
+            return res.status(400).json({ message: "Invalid input" });
+        }
 
-        if (!otpValid(user, otp)) return res.status(400).json({
-            message: "Invalid or expired OTP"
-        });
+        const user = await User.findOne({ email: email.trim().toLowerCase() });
+
+        // Uniform error — no enumeration
+        if (!user || !otpValid(user, otp.trim())) {
+            return res.status(400).json({ message: "Invalid or expired OTP" });
+        }
+
         res.json({ ok: true });
     } catch (err) {
-        res.status(500).json({ message: err.message });
+        console.error("verifyResetOtp error:", err.message);
+        res.status(500).json({ message: "An error occurred. Please try again." });
     }
 };
 
-// to reset the password
+// ─── Reset password ──────────────────────────────────────────────────────────
 export const resetPassword = async (req, res) => {
     try {
         const { email, otp, password } = req.body;
-        if (!password || password.length < 8)
-            return res.status(400).json({
-                message: "Password must be at least of 8 characters"
-            });
-        const user = await User.findOne({ email });
-        if (!user) return res.status(404).json({
-            message: "User not found"
-        });
+        if (typeof email !== "string" || typeof otp !== "string") {
+            return res.status(400).json({ message: "Invalid input" });
+        }
 
-        if (!otpValid(user, otp)) return res.status(400).json({
-            message: "Invalid or expired OTP"
-        });
+        const passwordError = validatePassword(password);
+        if (passwordError) return res.status(400).json({ message: passwordError });
+
+        const user = await User.findOne({ email: email.trim().toLowerCase() });
+
+        // Uniform error — no enumeration
+        if (!user || !otpValid(user, otp.trim())) {
+            return res.status(400).json({ message: "Invalid or expired OTP" });
+        }
 
         user.password = password;
         user.otp = undefined;
         user.otpExpires = undefined;
-        user.isVerified = true;
+        // NOTE: Do NOT set isVerified here — password reset is not email verification
         await user.save();
+
         res.json({ message: "Password reset successful" });
     } catch (err) {
-        res.status(500).json({ message: err.message });
+        console.error("resetPassword error:", err.message);
+        res.status(500).json({ message: "Password reset failed. Please try again." });
     }
 };

@@ -63,25 +63,57 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <div>
-      <Link to="/login" className="inline-flex items-center gap-1 text-xs text-gray-400 hover:text-gray-600 mb-4">
-        <ArrowLeft className="h-3 w-3" /> Back to login
+    <div className="animate-fade-up">
+      <Link
+        to="/login"
+        className="inline-flex items-center gap-1.5 text-xs text-[#94a3b8] hover:text-[#64748b] transition-colors mb-5"
+      >
+        <ArrowLeft className="h-3.5 w-3.5" /> Back to login
       </Link>
 
-      <div className="h-12 w-12 rounded-2xl bg-primary-50 dark:bg-primary-500/10 flex items-center justify-center mb-4">
+      <div className="h-12 w-12 rounded-2xl bg-primary-50 dark:bg-primary-500/10 flex items-center justify-center mb-5">
         <KeyRound className="h-6 w-6 text-primary-600" />
+      </div>
+
+      {/* Step indicator */}
+      <div className="flex items-center gap-2 mb-6">
+        {["email", "otp", "password"].map((s, i) => (
+          <div
+            key={s}
+            className={`h-1 flex-1 rounded-full transition-colors ${
+              ["email", "otp", "password"].indexOf(step) >= i
+                ? "bg-primary-500"
+                : "bg-gray-200 dark:bg-gray-700"
+            }`}
+          />
+        ))}
       </div>
 
       {step === "email" && (
         <>
-          <h1 className="text-2xl font-bold mb-1">Reset your password</h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">Enter your email and we'll send a reset code.</p>
+          <h1 className="text-2xl font-bold text-[#0f172a] dark:text-white mb-1.5">
+            Reset your password
+          </h1>
+          <p className="text-sm text-[#64748b] dark:text-gray-400 mb-6">
+            Enter your email and we'll send a reset code.
+          </p>
           <form onSubmit={requestOtp} className="space-y-4">
             <FormField label="Email" htmlFor="email">
-              <Input id="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" />
+              <Input
+                id="email"
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@example.com"
+              />
             </FormField>
-            {error && <p className="text-sm text-red-500">{error}</p>}
-            <Button type="submit" className="w-full" loading={loading}>
+            {error && (
+              <p className="text-sm text-red-500 flex items-center gap-1">
+                {error}
+              </p>
+            )}
+            <Button type="submit" className="w-full" size="lg" loading={loading}>
               Send reset code
             </Button>
           </form>
@@ -90,20 +122,36 @@ export default function ForgotPasswordPage() {
 
       {step === "otp" && (
         <>
-          <h1 className="text-2xl font-bold mb-1">Check your email</h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">Enter the 6-digit code sent to {email}.</p>
+          <h1 className="text-2xl font-bold text-[#0f172a] dark:text-white mb-1.5">
+            Check your email
+          </h1>
+          <p className="text-sm text-[#64748b] dark:text-gray-400 mb-6">
+            Enter the 6-digit code sent to{" "}
+            <span className="font-medium text-[#0f172a] dark:text-gray-200">
+              {email}
+            </span>
+            .
+          </p>
           <form onSubmit={verifyOtp} className="space-y-4">
             <Input
               value={otp}
-              onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
-              placeholder="123456"
+              onChange={(e) =>
+                setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))
+              }
+              placeholder="000000"
               inputMode="numeric"
               maxLength={6}
-              className="text-center text-2xl tracking-[0.5em] font-semibold"
+              className="text-center text-2xl tracking-[0.4em] font-semibold"
               autoFocus
             />
             {error && <p className="text-sm text-red-500">{error}</p>}
-            <Button type="submit" className="w-full" loading={loading} disabled={otp.length !== 6}>
+            <Button
+              type="submit"
+              className="w-full"
+              size="lg"
+              loading={loading}
+              disabled={otp.length !== 6}
+            >
               Verify code
             </Button>
           </form>
@@ -112,8 +160,12 @@ export default function ForgotPasswordPage() {
 
       {step === "password" && (
         <>
-          <h1 className="text-2xl font-bold mb-1">Set a new password</h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">At least 8 characters.</p>
+          <h1 className="text-2xl font-bold text-[#0f172a] dark:text-white mb-1.5">
+            Set a new password
+          </h1>
+          <p className="text-sm text-[#64748b] dark:text-gray-400 mb-6">
+            At least 8 characters.
+          </p>
           <form onSubmit={resetPassword} className="space-y-4">
             <FormField label="New password" htmlFor="password">
               <Input
@@ -127,7 +179,7 @@ export default function ForgotPasswordPage() {
               />
             </FormField>
             {error && <p className="text-sm text-red-500">{error}</p>}
-            <Button type="submit" className="w-full" loading={loading}>
+            <Button type="submit" className="w-full" size="lg" loading={loading}>
               Reset password
             </Button>
           </form>

@@ -1,7 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import toast from "react-hot-toast";
-import { Bookmark, Share2, Eye, Lock, ArrowLeft, Trash2, XCircle, BarChart3 } from "lucide-react";
+import {
+  Bookmark,
+  Share2,
+  Eye,
+  Lock,
+  ArrowLeft,
+  Trash2,
+  XCircle,
+  BarChart3,
+} from "lucide-react";
 import clsx from "clsx";
 import { pollsApi } from "../api/polls";
 import { commentsApi } from "../api/comments";
@@ -31,7 +40,10 @@ export default function PollDetailsPage() {
     setLoading(true);
     setError(null);
     try {
-      const [p, c] = await Promise.all([pollsApi.get(id), commentsApi.list(id)]);
+      const [p, c] = await Promise.all([
+        pollsApi.get(id),
+        commentsApi.list(id),
+      ]);
       setPoll(p);
       setComments(c);
     } catch (e) {
@@ -68,7 +80,8 @@ export default function PollDetailsPage() {
   if (!poll) return null;
 
   const meta = pollTypeMeta(poll.type);
-  const isOwner = user && (poll.creator?._id === user._id || poll.creator === user._id);
+  const isOwner =
+    user && (poll.creator?._id === user._id || poll.creator === user._id);
 
   const applyVote = async (value) => {
     setVoting(true);
@@ -86,7 +99,11 @@ export default function PollDetailsPage() {
   const toggleBookmark = async () => {
     try {
       const { bookmarked } = await pollsApi.toggleBookmark(poll._id);
-      setPoll((p) => ({ ...p, isBookmarked: bookmarked, saves: p.saves + (bookmarked ? 1 : -1) }));
+      setPoll((p) => ({
+        ...p,
+        isBookmarked: bookmarked,
+        saves: p.saves + (bookmarked ? 1 : -1),
+      }));
     } catch (e) {
       toast.error(e.message);
     }
@@ -117,26 +134,40 @@ export default function PollDetailsPage() {
     }
   };
 
-  const onCommentAdded = (comment) => setComments((prev) => [comment, ...prev]);
+  const onCommentAdded = (comment) =>
+    setComments((prev) => [comment, ...prev]);
   const onCommentRemoved = (commentId) =>
-    setComments((prev) => prev.filter((c) => c._id !== commentId && c.parent !== commentId));
+    setComments((prev) =>
+      prev.filter((c) => c._id !== commentId && c.parent !== commentId)
+    );
 
   return (
     <div className="max-w-2xl mx-auto animate-fade-up">
-      <button onClick={() => navigate(-1)} className="flex items-center gap-1 text-sm text-gray-400 hover:text-gray-600 mb-4">
+      <button
+        onClick={() => navigate(-1)}
+        className="flex items-center gap-1.5 text-sm text-[#94a3b8] hover:text-[#64748b] transition-colors mb-4"
+      >
         <ArrowLeft className="h-3.5 w-3.5" /> Back
       </button>
 
       <div className="card p-6">
+        {/* Header */}
         <div className="flex items-start gap-3 mb-4">
           <Link to={`/u/${poll.creator?.username}`}>
-            <Avatar src={poll.creator?.avatar} name={poll.creator?.name} size="md" />
+            <Avatar
+              src={poll.creator?.avatar}
+              name={poll.creator?.name}
+              size="md"
+            />
           </Link>
           <div className="min-w-0 flex-1">
-            <Link to={`/u/${poll.creator?.username}`} className="font-semibold hover:underline block">
+            <Link
+              to={`/u/${poll.creator?.username}`}
+              className="font-semibold hover:underline block text-[#0f172a] dark:text-gray-100"
+            >
               {poll.creator?.name}
             </Link>
-            <p className="text-xs text-gray-400">
+            <p className="text-xs text-[#94a3b8]">
               @{poll.creator?.username} · {timeAgo(poll.createdAt)}
             </p>
           </div>
@@ -150,47 +181,90 @@ export default function PollDetailsPage() {
           </div>
         </div>
 
-        <h1 className="text-xl font-bold mb-1">{poll.question}</h1>
-        {poll.category && <p className="text-sm text-gray-400 mb-5">{poll.category}</p>}
+        {/* Question */}
+        <h1 className="text-xl font-bold mb-1 text-[#0f172a] dark:text-white">
+          {poll.question}
+        </h1>
+        {poll.category && (
+          <p className="text-sm text-[#94a3b8] mb-5">{poll.category}</p>
+        )}
 
-        <PollVoter poll={poll} voting={voting} onVote={applyVote} onOpenTextSubmit={applyVote} />
+        {/* Voter */}
+        <PollVoter
+          poll={poll}
+          voting={voting}
+          onVote={applyVote}
+          onOpenTextSubmit={applyVote}
+        />
 
-        <div className="flex items-center gap-5 mt-6 pt-4 border-t border-gray-100 dark:border-gray-800 text-gray-400">
-          <span className="text-sm">{poll.totalVotes} votes</span>
+        {/* Actions */}
+        <div className="flex items-center gap-5 mt-6 pt-4 border-t border-[#e2e8f0] dark:border-gray-800 text-[#94a3b8]">
+          <span className="text-sm font-medium">{poll.totalVotes} votes</span>
           <span className="text-sm flex items-center gap-1">
             <Eye className="h-4 w-4" /> {poll.views} views
           </span>
           <button
             onClick={toggleBookmark}
-            className={clsx("ml-auto text-sm flex items-center gap-1 hover:text-primary-600", poll.isBookmarked && "text-primary-600")}
+            className={clsx(
+              "ml-auto text-sm flex items-center gap-1 hover:text-primary-600 transition-colors",
+              poll.isBookmarked && "text-primary-600"
+            )}
           >
-            <Bookmark className={clsx("h-4 w-4", poll.isBookmarked && "fill-current")} /> Save
+            <Bookmark
+              className={clsx(
+                "h-4 w-4",
+                poll.isBookmarked && "fill-current"
+              )}
+            />{" "}
+            Save
           </button>
-          <button onClick={share} className="text-sm flex items-center gap-1 hover:text-primary-600">
+          <button
+            onClick={share}
+            className="text-sm flex items-center gap-1 hover:text-primary-600 transition-colors"
+          >
             <Share2 className="h-4 w-4" /> Share
           </button>
           {isOwner && (
-            <Link to={`/polls/${poll._id}/analytics`} className="text-sm flex items-center gap-1 hover:text-primary-600">
+            <Link
+              to={`/polls/${poll._id}/analytics`}
+              className="text-sm flex items-center gap-1 hover:text-primary-600 transition-colors"
+            >
               <BarChart3 className="h-4 w-4" /> Analytics
             </Link>
           )}
         </div>
 
+        {/* Owner actions */}
         {isOwner && (
           <div className="flex items-center gap-3 mt-4">
-            <button onClick={toggleClose} className="text-xs flex items-center gap-1 text-gray-400 hover:text-gray-600">
-              <XCircle className="h-3.5 w-3.5" /> {poll.closed ? "Reopen poll" : "Close poll"}
+            <button
+              onClick={toggleClose}
+              className="text-xs flex items-center gap-1 text-[#94a3b8] hover:text-[#64748b] transition-colors"
+            >
+              <XCircle className="h-3.5 w-3.5" />{" "}
+              {poll.closed ? "Reopen poll" : "Close poll"}
             </button>
-            <button onClick={() => setConfirmDelete(true)} className="text-xs flex items-center gap-1 text-red-400 hover:text-red-600">
+            <button
+              onClick={() => setConfirmDelete(true)}
+              className="text-xs flex items-center gap-1 text-red-400 hover:text-red-600 transition-colors"
+            >
               <Trash2 className="h-3.5 w-3.5" /> Delete poll
             </button>
           </div>
         )}
       </div>
 
+      {/* Comments */}
       <div className="card p-6 mt-4">
-        <h2 className="font-semibold mb-4">Discussion ({comments.length})</h2>
-        <CommentThread pollId={poll._id} comments={commentTree} onAdded={onCommentAdded} onRemoved={onCommentRemoved} />
+        <h2 className="font-semibold text-[#0f172a] dark:text-gray-100 mb-4">
+          Discussion ({comments.length})
+        </h2>
+        <CommentThread
+          pollId={poll._id}
+          comments={commentTree}
+          onAdded={onCommentAdded}
+          onRemoved={onCommentRemoved}
+        />
       </div>
 
       <ConfirmDialog

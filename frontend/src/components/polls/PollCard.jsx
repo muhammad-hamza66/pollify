@@ -1,7 +1,16 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import toast from "react-hot-toast";
-import { Bookmark, MessageCircle, Eye, Share2, Lock, MoreHorizontal, Trash2, XCircle } from "lucide-react";
+import {
+  Bookmark,
+  MessageCircle,
+  Eye,
+  Share2,
+  Lock,
+  MoreHorizontal,
+  Trash2,
+  XCircle,
+} from "lucide-react";
 import clsx from "clsx";
 import Avatar from "../ui/Avatar";
 import Badge from "../ui/Badge";
@@ -12,7 +21,11 @@ import { pollTypeMeta } from "../../utils/pollMeta";
 import { useAuth } from "../../context/AuthContext";
 import ConfirmDialog from "../ui/ConfirmDialog";
 
-export default function PollCard({ poll: initialPoll, onRemoved, showOwnerActions = false }) {
+export default function PollCard({
+  poll: initialPoll,
+  onRemoved,
+  showOwnerActions = false,
+}) {
   const [poll, setPoll] = useState(initialPoll);
   const [voting, setVoting] = useState(false);
   const [bookmarking, setBookmarking] = useState(false);
@@ -20,7 +33,8 @@ export default function PollCard({ poll: initialPoll, onRemoved, showOwnerAction
   const [menuOpen, setMenuOpen] = useState(false);
   const { user } = useAuth();
   const meta = pollTypeMeta(poll.type);
-  const isOwner = user && (poll.creator?._id === user._id || poll.creator === user._id);
+  const isOwner =
+    user && (poll.creator?._id === user._id || poll.creator === user._id);
 
   const applyVote = async (value) => {
     if (poll.closed || voting) return;
@@ -42,7 +56,11 @@ export default function PollCard({ poll: initialPoll, onRemoved, showOwnerAction
     setBookmarking(true);
     try {
       const { bookmarked } = await pollsApi.toggleBookmark(poll._id);
-      setPoll((p) => ({ ...p, isBookmarked: bookmarked, saves: p.saves + (bookmarked ? 1 : -1) }));
+      setPoll((p) => ({
+        ...p,
+        isBookmarked: bookmarked,
+        saves: p.saves + (bookmarked ? 1 : -1),
+      }));
       toast.success(bookmarked ? "Saved to bookmarks" : "Removed from bookmarks");
     } catch (e) {
       toast.error(e.message);
@@ -84,16 +102,24 @@ export default function PollCard({ poll: initialPoll, onRemoved, showOwnerAction
   };
 
   return (
-    <article className="card p-5 flex flex-col animate-fade-up">
+    <article className="card-interactive p-5 flex flex-col animate-fade-up">
+      {/* Header */}
       <div className="flex items-start gap-3 mb-3">
         <Link to={`/u/${poll.creator?.username}`}>
-          <Avatar src={poll.creator?.avatar} name={poll.creator?.name} size="sm" />
+          <Avatar
+            src={poll.creator?.avatar}
+            name={poll.creator?.name}
+            size="sm"
+          />
         </Link>
         <div className="min-w-0 flex-1">
-          <Link to={`/u/${poll.creator?.username}`} className="text-sm font-semibold hover:underline truncate block">
+          <Link
+            to={`/u/${poll.creator?.username}`}
+            className="text-sm font-semibold hover:underline truncate block text-[#0f172a] dark:text-gray-100"
+          >
             {poll.creator?.name}
           </Link>
-          <p className="text-xs text-gray-400">
+          <p className="text-xs text-[#94a3b8]">
             @{poll.creator?.username} · {timeAgo(poll.createdAt)}
           </p>
         </div>
@@ -108,25 +134,26 @@ export default function PollCard({ poll: initialPoll, onRemoved, showOwnerAction
             <div className="relative">
               <button
                 onClick={() => setMenuOpen((v) => !v)}
-                className="p-1 rounded-lg text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
+                className="p-1 rounded-lg text-[#94a3b8] hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                 aria-label="Poll options"
               >
                 <MoreHorizontal className="h-4 w-4" />
               </button>
               {menuOpen && (
-                <div className="absolute right-0 mt-1 w-40 card p-1 z-10 shadow-lg">
+                <div className="absolute right-0 mt-1 w-44 bg-white dark:bg-surface-dark-elevated border border-[#e2e8f0] dark:border-gray-800 rounded-xl shadow-dropdown p-1 z-10 animate-scale-in">
                   <button
                     onClick={toggleClose}
-                    className="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800"
+                    className="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 text-[#0f172a] dark:text-gray-200 transition-colors"
                   >
-                    <XCircle className="h-3.5 w-3.5" /> {poll.closed ? "Reopen poll" : "Close poll"}
+                    <XCircle className="h-3.5 w-3.5 text-[#94a3b8]" />{" "}
+                    {poll.closed ? "Reopen poll" : "Close poll"}
                   </button>
                   <button
                     onClick={() => {
                       setMenuOpen(false);
                       setConfirmDelete(true);
                     }}
-                    className="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-lg text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10"
+                    className="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-lg text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
                   >
                     <Trash2 className="h-3.5 w-3.5" /> Delete
                   </button>
@@ -137,13 +164,19 @@ export default function PollCard({ poll: initialPoll, onRemoved, showOwnerAction
         </div>
       </div>
 
+      {/* Question */}
       <Link to={`/polls/${poll._id}`} className="block mb-3 group">
-        <h3 className="font-semibold text-gray-900 dark:text-gray-100 leading-snug group-hover:text-primary-600 transition-colors">
+        <h3 className="font-semibold text-[#0f172a] dark:text-gray-100 leading-snug group-hover:text-primary-600 transition-colors">
           {poll.question}
         </h3>
-        {poll.category && <span className="text-xs text-gray-400">{poll.category}</span>}
+        {poll.category && (
+          <span className="text-xs text-[#94a3b8] mt-0.5 inline-block">
+            {poll.category}
+          </span>
+        )}
       </Link>
 
+      {/* Voter */}
       <PollVoter
         poll={poll}
         voting={voting}
@@ -152,9 +185,15 @@ export default function PollCard({ poll: initialPoll, onRemoved, showOwnerAction
         compact
       />
 
-      <div className="flex items-center gap-4 mt-4 pt-3 border-t border-gray-100 dark:border-gray-800 text-gray-400">
-        <span className="text-xs flex items-center gap-1">{poll.totalVotes} votes</span>
-        <Link to={`/polls/${poll._id}`} className="text-xs flex items-center gap-1 hover:text-primary-600">
+      {/* Footer */}
+      <div className="flex items-center gap-4 mt-4 pt-3 border-t border-[#e2e8f0] dark:border-gray-800 text-[#94a3b8]">
+        <span className="text-xs flex items-center gap-1 font-medium">
+          {poll.totalVotes} votes
+        </span>
+        <Link
+          to={`/polls/${poll._id}`}
+          className="text-xs flex items-center gap-1 hover:text-primary-600 transition-colors"
+        >
           <MessageCircle className="h-3.5 w-3.5" /> {poll.comments}
         </Link>
         <span className="text-xs flex items-center gap-1">
@@ -163,13 +202,26 @@ export default function PollCard({ poll: initialPoll, onRemoved, showOwnerAction
         <button
           onClick={toggleBookmark}
           disabled={bookmarking}
-          className={clsx("ml-auto text-xs flex items-center gap-1 hover:text-primary-600", poll.isBookmarked && "text-primary-600")}
+          className={clsx(
+            "ml-auto text-xs flex items-center gap-1 hover:text-primary-600 transition-colors",
+            poll.isBookmarked && "text-primary-600"
+          )}
           aria-pressed={poll.isBookmarked}
           aria-label="Bookmark poll"
         >
-          <Bookmark className={clsx("h-3.5 w-3.5", poll.isBookmarked && "fill-current")} /> {poll.saves}
+          <Bookmark
+            className={clsx(
+              "h-3.5 w-3.5",
+              poll.isBookmarked && "fill-current"
+            )}
+          />{" "}
+          {poll.saves}
         </button>
-        <button onClick={share} className="text-xs flex items-center gap-1 hover:text-primary-600" aria-label="Share poll">
+        <button
+          onClick={share}
+          className="text-xs flex items-center gap-1 hover:text-primary-600 transition-colors"
+          aria-label="Share poll"
+        >
           <Share2 className="h-3.5 w-3.5" />
         </button>
       </div>

@@ -182,14 +182,14 @@ export default function AvatarUpload({ onChange, disabled = false, name = "" }) 
             // Ring states
             "ring-4",
             drag
-              ? "ring-primary-500 scale-105 shadow-lg shadow-primary-500/25"
+              ? "ring-primary-500 scale-105 shadow-lg shadow-primary-500/20"
               : status === "ready"
               ? "ring-primary-500/60"
               : status === "error"
               ? "ring-red-400/60"
               : "ring-gray-200 dark:ring-gray-700",
             // Hover glow
-            !disabled && !isProcessing && "cursor-pointer hover:ring-primary-400 hover:shadow-lg hover:shadow-primary-500/20 hover:scale-[1.02]",
+            !disabled && !isProcessing && "cursor-pointer hover:ring-primary-400 hover:shadow-lg hover:shadow-primary-500/15 hover:scale-[1.02]",
             // Focus ring (from global CSS)
             "focus-visible:ring-primary-500"
           )}

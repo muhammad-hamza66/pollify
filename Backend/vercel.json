@@ -11,5 +11,8 @@
       "src": "/(.*)",
       "dest": "server.js"
     }
-  ]
+  ],
+  "env": {
+    "CLIENT_URL": "https://pollify-8whw.vercel.app,https://pollify-sooty-alpha.vercel.app"
+  }
 }

@@ -19,10 +19,13 @@ export default function VerifyOtpPage() {
 
   if (!email) {
     return (
-      <div className="text-center">
-        <p className="text-sm text-gray-500">
+      <div className="text-center animate-fade-up">
+        <p className="text-sm text-[#64748b]">
           No email found for verification. Please{" "}
-          <button onClick={() => navigate("/register")} className="text-primary-600 hover:underline">
+          <button
+            onClick={() => navigate("/register")}
+            className="text-primary-600 hover:underline font-medium"
+          >
             register
           </button>{" "}
           first.
@@ -59,34 +62,51 @@ export default function VerifyOtpPage() {
   };
 
   return (
-    <div>
-      <div className="h-12 w-12 rounded-2xl bg-primary-50 dark:bg-primary-500/10 flex items-center justify-center mb-4">
+    <div className="animate-fade-up">
+      <div className="h-12 w-12 rounded-2xl bg-primary-50 dark:bg-primary-500/10 flex items-center justify-center mb-5">
         <MailCheck className="h-6 w-6 text-primary-600" />
       </div>
-      <h1 className="text-2xl font-bold mb-1">Verify your email</h1>
-      <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
-        We sent a 6-digit code to <span className="font-medium text-gray-700 dark:text-gray-200">{email}</span>
+      <h1 className="text-2xl font-bold text-[#0f172a] dark:text-white mb-1.5">
+        Verify your email
+      </h1>
+      <p className="text-sm text-[#64748b] dark:text-gray-400 mb-6">
+        We sent a 6-digit code to{" "}
+        <span className="font-medium text-[#0f172a] dark:text-gray-200">
+          {email}
+        </span>
       </p>
 
       <form onSubmit={submit} className="space-y-4">
         <Input
           value={otp}
-          onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
-          placeholder="123456"
+          onChange={(e) =>
+            setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))
+          }
+          placeholder="000000"
           inputMode="numeric"
           maxLength={6}
-          className="text-center text-2xl tracking-[0.5em] font-semibold"
+          className="text-center text-2xl tracking-[0.4em] font-semibold"
           autoFocus
         />
         {error && <p className="text-sm text-red-500">{error}</p>}
-        <Button type="submit" className="w-full" loading={loading} disabled={otp.length !== 6}>
+        <Button
+          type="submit"
+          className="w-full"
+          size="lg"
+          loading={loading}
+          disabled={otp.length !== 6}
+        >
           Verify & continue
         </Button>
       </form>
 
-      <p className="text-sm text-center text-gray-500 dark:text-gray-400 mt-6">
+      <p className="text-sm text-center text-[#64748b] dark:text-gray-400 mt-6">
         Didn't get a code?{" "}
-        <button onClick={resend} disabled={resending} className="text-primary-600 font-medium hover:underline disabled:opacity-50">
+        <button
+          onClick={resend}
+          disabled={resending}
+          className="text-primary-600 dark:text-primary-400 font-medium hover:underline disabled:opacity-50"
+        >
           Resend
         </button>
       </p>

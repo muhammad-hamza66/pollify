@@ -43,7 +43,11 @@ export default function ProfilePage() {
     setFollowLoading(true);
     try {
       const res = await usersApi.toggleFollow(username);
-      setData((d) => ({ ...d, isFollowing: res.following, stats: { ...d.stats, followers: res.followers } }));
+      setData((d) => ({
+        ...d,
+        isFollowing: res.following,
+        stats: { ...d.stats, followers: res.followers },
+      }));
     } catch (e) {
       toast.error(e.message);
     } finally {
@@ -72,16 +76,29 @@ export default function ProfilePage() {
         <div className="flex flex-col sm:flex-row sm:items-center gap-4">
           <Avatar src={user.avatar} name={user.name} size="xl" />
           <div className="flex-1 min-w-0">
-            <h1 className="text-xl font-bold">{user.name}</h1>
-            <p className="text-sm text-gray-400">@{user.username}</p>
-            {user.bio && <p className="text-sm text-gray-600 dark:text-gray-300 mt-2">{user.bio}</p>}
+            <h1 className="text-xl font-bold text-[#0f172a] dark:text-white">
+              {user.name}
+            </h1>
+            <p className="text-sm text-[#94a3b8]">@{user.username}</p>
+            {user.bio && (
+              <p className="text-sm text-[#64748b] dark:text-gray-300 mt-2 leading-relaxed">
+                {user.bio}
+              </p>
+            )}
           </div>
           {isMe ? (
-            <Link to="/settings" className="btn border border-gray-200 dark:border-gray-700 px-4 py-2 text-sm">
+            <Link
+              to="/settings"
+              className="btn border border-[#e2e8f0] dark:border-gray-700 text-[#0f172a] dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 px-4 py-2 text-sm"
+            >
               Edit profile
             </Link>
           ) : (
-            <Button variant={isFollowing ? "outline" : "primary"} loading={followLoading} onClick={toggleFollow}>
+            <Button
+              variant={isFollowing ? "outline" : "primary"}
+              loading={followLoading}
+              onClick={toggleFollow}
+            >
               {isFollowing ? (
                 <>
                   <UserCheck className="h-4 w-4" /> Following
@@ -95,7 +112,7 @@ export default function ProfilePage() {
           )}
         </div>
 
-        <div className="flex items-center gap-6 mt-6 pt-4 border-t border-gray-100 dark:border-gray-800">
+        <div className="flex items-center gap-6 mt-6 pt-4 border-t border-[#e2e8f0] dark:border-gray-800">
           <Stat value={stats.created} label="Polls" />
           <Stat value={stats.voted} label="Voted" />
           <button onClick={() => openConnections("followers")} className="text-left">
@@ -107,9 +124,15 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      <h2 className="font-semibold mb-4">Polls by {user.name}</h2>
+      <h2 className="font-semibold text-[#0f172a] dark:text-gray-100 mb-4">
+        Polls by {user.name}
+      </h2>
       {polls.length === 0 ? (
-        <EmptyState icon={Vote} title="No polls yet" description={`${user.name} hasn't created any polls.`} />
+        <EmptyState
+          icon={Vote}
+          title="No polls yet"
+          description={`${user.name} hasn't created any polls.`}
+        />
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {polls.map((p) => (
@@ -118,9 +141,15 @@ export default function ProfilePage() {
         </div>
       )}
 
-      <Modal open={!!connectionsOpen} onClose={() => setConnectionsOpen(null)} title={connectionsOpen === "followers" ? "Followers" : "Following"}>
+      <Modal
+        open={!!connectionsOpen}
+        onClose={() => setConnectionsOpen(null)}
+        title={
+          connectionsOpen === "followers" ? "Followers" : "Following"
+        }
+      >
         {!connections ? (
-          <p className="text-sm text-gray-400 py-6 text-center">Loading...</p>
+          <p className="text-sm text-[#94a3b8] py-6 text-center">Loading…</p>
         ) : (
           <div className="max-h-80 overflow-y-auto scrollbar-thin -mx-2">
             {(connections[connectionsOpen] || []).length === 0 ? (
@@ -131,12 +160,14 @@ export default function ProfilePage() {
                   key={u._id}
                   to={`/u/${u.username}`}
                   onClick={() => setConnectionsOpen(null)}
-                  className="flex items-center gap-3 px-2 py-2.5 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800"
+                  className="flex items-center gap-3 px-2 py-2.5 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                 >
                   <Avatar src={u.avatar} name={u.name} size="sm" />
                   <div>
-                    <p className="text-sm font-medium">{u.name}</p>
-                    <p className="text-xs text-gray-400">@{u.username}</p>
+                    <p className="text-sm font-medium text-[#0f172a] dark:text-gray-100">
+                      {u.name}
+                    </p>
+                    <p className="text-xs text-[#94a3b8]">@{u.username}</p>
                   </div>
                 </Link>
               ))
@@ -151,8 +182,10 @@ export default function ProfilePage() {
 function Stat({ value, label }) {
   return (
     <div>
-      <p className="text-lg font-bold leading-none">{value}</p>
-      <p className="text-xs text-gray-400 mt-1">{label}</p>
+      <p className="text-lg font-bold leading-none text-[#0f172a] dark:text-white">
+        {value}
+      </p>
+      <p className="text-xs text-[#94a3b8] mt-1">{label}</p>
     </div>
   );
 }

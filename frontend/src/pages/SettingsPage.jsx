@@ -44,7 +44,12 @@ export default function SettingsPage() {
     setProfileError("");
     setSavingProfile(true);
     try {
-      const data = await authApi.updateProfile({ name, username, bio, image: imageFile || undefined });
+      const data = await authApi.updateProfile({
+        name,
+        username,
+        bio,
+        image: imageFile || undefined,
+      });
       setUser(data.user);
       toast.success("Profile updated");
     } catch (e2) {
@@ -86,68 +91,108 @@ export default function SettingsPage() {
   return (
     <div className="max-w-2xl mx-auto space-y-6 animate-fade-up">
       <div>
-        <h1 className="text-2xl font-bold flex items-center gap-2">
+        <h1 className="text-2xl font-bold flex items-center gap-2 text-[#0f172a] dark:text-white">
           <SettingsIcon className="h-5 w-5 text-primary-600" /> Settings
         </h1>
-        <p className="text-sm text-gray-500 dark:text-gray-400">Manage your profile, security, and account.</p>
+        <p className="text-sm text-[#64748b] dark:text-gray-400 mt-0.5">
+          Manage your profile, security, and account.
+        </p>
       </div>
 
+      {/* Profile */}
       <form onSubmit={saveProfile} className="card p-6 space-y-4">
-        <h2 className="font-semibold">Profile</h2>
+        <h2 className="font-semibold text-[#0f172a] dark:text-gray-100">
+          Profile
+        </h2>
         <div className="flex items-center gap-4">
           <div className="relative">
-            <Avatar src={preview || user?.avatar} name={name} size="xl" />
+            <Avatar
+              src={preview || user?.avatar}
+              name={name}
+              size="xl"
+            />
             <button
               type="button"
               onClick={() => fileRef.current?.click()}
-              className="absolute -bottom-1 -right-1 h-7 w-7 rounded-full bg-primary-600 text-white flex items-center justify-center shadow-md"
+              className="absolute -bottom-1 -right-1 h-7 w-7 rounded-full bg-primary-600 text-white flex items-center justify-center shadow-md hover:bg-primary-700 transition-colors"
               aria-label="Change avatar"
             >
               <Camera className="h-3.5 w-3.5" />
             </button>
-            <input ref={fileRef} type="file" accept="image/*" hidden onChange={onPickImage} />
+            <input
+              ref={fileRef}
+              type="file"
+              accept="image/*"
+              hidden
+              onChange={onPickImage}
+            />
           </div>
-          <p className="text-xs text-gray-400">Click the camera icon to change your photo.</p>
+          <p className="text-xs text-[#94a3b8]">
+            Click the camera icon to change your photo.
+          </p>
         </div>
 
         <FormField label="Full name">
           <Input value={name} onChange={(e) => setName(e.target.value)} />
         </FormField>
         <FormField label="Username">
-          <Input value={username} onChange={(e) => setUsername(e.target.value)} />
+          <Input
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+          />
         </FormField>
         <FormField label="Bio" hint={`${bio.length}/160`}>
-          <Textarea value={bio} onChange={(e) => setBio(e.target.value.slice(0, 160))} rows={3} />
+          <Textarea
+            value={bio}
+            onChange={(e) => setBio(e.target.value.slice(0, 160))}
+            rows={3}
+          />
         </FormField>
 
-        {profileError && <p className="text-sm text-red-500">{profileError}</p>}
+        {profileError && (
+          <p className="text-sm text-red-500">{profileError}</p>
+        )}
         <Button type="submit" loading={savingProfile}>
           Save changes
         </Button>
       </form>
 
+      {/* Password */}
       <form onSubmit={savePassword} className="card p-6 space-y-4">
-        <h2 className="font-semibold flex items-center gap-2">
-          <Lock className="h-4 w-4" /> Change password
+        <h2 className="font-semibold flex items-center gap-2 text-[#0f172a] dark:text-gray-100">
+          <Lock className="h-4 w-4 text-[#94a3b8]" /> Change password
         </h2>
         <FormField label="Current password">
-          <Input type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} />
+          <Input
+            type="password"
+            value={currentPassword}
+            onChange={(e) => setCurrentPassword(e.target.value)}
+          />
         </FormField>
         <FormField label="New password" hint="At least 8 characters">
-          <Input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} minLength={8} />
+          <Input
+            type="password"
+            value={newPassword}
+            onChange={(e) => setNewPassword(e.target.value)}
+            minLength={8}
+          />
         </FormField>
-        {passwordError && <p className="text-sm text-red-500">{passwordError}</p>}
+        {passwordError && (
+          <p className="text-sm text-red-500">{passwordError}</p>
+        )}
         <Button type="submit" variant="outline" loading={savingPassword}>
           Update password
         </Button>
       </form>
 
-      <div className="card p-6 border-red-100 dark:border-red-900/40">
+      {/* Danger zone */}
+      <div className="card p-6 border-red-200 dark:border-red-900/40">
         <h2 className="font-semibold text-red-600 flex items-center gap-2 mb-1">
           <Trash2 className="h-4 w-4" /> Danger zone
         </h2>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-          Deleting your account removes all your polls, comments, and votes. This can't be undone.
+        <p className="text-sm text-[#64748b] dark:text-gray-400 mb-4 leading-relaxed">
+          Deleting your account removes all your polls, comments, and votes.
+          This can't be undone.
         </p>
         <Button variant="danger" onClick={() => setConfirmDelete(true)}>
           Delete my account

@@ -1,13 +1,13 @@
-import logo from "../../assets/logo.png";
+import { Loader2 } from "lucide-react";
 
 export default function PageLoader() {
   return (
     <div className="min-h-screen flex items-center justify-center">
-      <div className="flex flex-col items-center gap-3">
-        <span className="h-12 w-12 rounded-2xl flex items-center justify-center">
-          <img src={logo} alt="Pollify" className="h-8 w-8 object-contain" />
-        </span>
-        <p className="text-sm text-gray-400">Loading Pollify...</p>
+      <div className="flex flex-col items-center gap-3 animate-fade-in">
+        <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center shadow-glow-sm">
+          <Loader2 className="h-5 w-5 text-white animate-spin" />
+        </div>
+        <p className="text-sm text-[#94a3b8] font-medium">Loading…</p>
       </div>
     </div>
   );

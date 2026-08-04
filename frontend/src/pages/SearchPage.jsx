@@ -8,10 +8,6 @@ import EmptyState from "../components/ui/EmptyState";
 import ErrorState from "../components/ui/ErrorState";
 import Input from "../components/ui/Input";
 
-// The backend's GET /api/polls has no text-search parameter (only type,
-// category, feed). Until a `?q=` param is added server-side, we fetch the
-// full list once and filter client-side by question/category/creator.
-// This is fine at demo scale; flagged as a backend TODO in the audit.
 export default function SearchPage() {
   const [params, setParams] = useSearchParams();
   const q = params.get("q") || "";
@@ -49,15 +45,15 @@ export default function SearchPage() {
   return (
     <div className="max-w-3xl mx-auto space-y-6 animate-fade-up">
       <div>
-        <h1 className="text-2xl font-bold flex items-center gap-2 mb-4">
+        <h1 className="text-2xl font-bold flex items-center gap-2 mb-4 text-[#0f172a] dark:text-white">
           <SearchIcon className="h-5 w-5 text-primary-600" /> Search
         </h1>
         <form onSubmit={submit} className="relative">
-          <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[#94a3b8]" />
           <Input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search polls by question, category, or creator..."
+            placeholder="Search polls by question, category, or creator…"
             className="pl-11 py-3"
             autoFocus
           />
@@ -65,7 +61,9 @@ export default function SearchPage() {
       </div>
 
       {!q ? (
-        <p className="text-sm text-gray-400 text-center py-16">Type something and hit enter to search.</p>
+        <p className="text-sm text-[#94a3b8] text-center py-16">
+          Type something and hit enter to search.
+        </p>
       ) : loading ? (
         <ListSkeleton count={4} />
       ) : error ? (
@@ -76,15 +74,21 @@ export default function SearchPage() {
           title={`No results for "${q}"`}
           description="Try a different keyword, or explore all polls instead."
           action={
-            <Link to="/explore" className="btn bg-primary-600 text-white px-4 py-2 text-sm">
+            <Link
+              to="/explore"
+              className="btn bg-primary-600 text-white hover:bg-primary-700 px-4 py-2 text-sm shadow-sm shadow-primary-600/20"
+            >
               Explore polls
             </Link>
           }
         />
       ) : (
         <>
-          <p className="text-sm text-gray-400">
-            {results.length} result{results.length !== 1 && "s"} for "{q}"
+          <p className="text-sm text-[#94a3b8]">
+            <span className="font-medium text-[#0f172a] dark:text-gray-200">
+              {results.length}
+            </span>{" "}
+            result{results.length !== 1 && "s"} for "{q}"
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {results.map((p) => (

@@ -47,24 +47,39 @@ app.use(helmet({
 // ─── Compression ───────────────────────────────────────────────────────────
 app.use(compression());
 
-// ─── CORS — strict origin whitelist ───────────────────────────────────────
+// ─── CORS — dynamic origin whitelist for production and vercel preview domains ───
 const ALLOWED_ORIGINS = (process.env.CLIENT_URL || "")
     .split(",")
     .map((o) => o.trim())
     .filter(Boolean);
 
+// Regex matching vercel.app domains (including preview deployment URLs)
+const VERCEL_PREVIEW_REGEX = /^https:\/\/.*\.vercel\.app$/;
+
 app.use(cors({
     origin: (origin, callback) => {
         // Allow same-origin / server-to-server calls (no Origin header)
-        if (!origin || ALLOWED_ORIGINS.includes(origin)) {
-            callback(null, true);
-        } else {
-            callback(new Error(`CORS policy: origin ${origin} is not allowed`));
+        if (!origin) {
+            return callback(null, true);
         }
+        
+        // Allow strict whitelist origins (production, localhost)
+        if (ALLOWED_ORIGINS.includes(origin)) {
+            return callback(null, true);
+        }
+
+        // Allow any vercel deployment preview URLs dynamically
+        if (VERCEL_PREVIEW_REGEX.test(origin)) {
+            return callback(null, true);
+        }
+
+        // Disallow origin cleanly without breaking OPTIONS preflight status codes
+        callback(null, false);
     },
     credentials: true,
     methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
+    optionsSuccessStatus: 204
 }));
 
 // ─── Body parsers with size limits ─────────────────────────────────────────

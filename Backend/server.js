@@ -47,24 +47,47 @@ app.use(helmet({
 // ─── Compression ───────────────────────────────────────────────────────────
 app.use(compression());
 
-// ─── CORS — strict origin whitelist ───────────────────────────────────────
+// ─── CORS — dynamic origin whitelist for production and vercel preview domains ───
 const ALLOWED_ORIGINS = (process.env.CLIENT_URL || "")
     .split(",")
     .map((o) => o.trim())
     .filter(Boolean);
 
+// Regex matching vercel.app domains (including preview deployment URLs)
+const VERCEL_PREVIEW_REGEX = /^https:\/\/.*\.vercel\.app$/;
+
+// Regex matching localhost and local network IPs (e.g. 192.168.x.x) on any port for seamless local development
+const LOCAL_DEV_REGEX = /^https?:\/\/(localhost|127\.0\.0\.1|192\.168\.\d+\.\d+|10\.\d+\.\d+\.\d+):\d+$/;
+
 app.use(cors({
     origin: (origin, callback) => {
         // Allow same-origin / server-to-server calls (no Origin header)
-        if (!origin || ALLOWED_ORIGINS.includes(origin)) {
-            callback(null, true);
-        } else {
-            callback(new Error(`CORS policy: origin ${origin} is not allowed`));
+        if (!origin) {
+            return callback(null, true);
         }
+        
+        // Allow strict whitelist origins (production, localhost)
+        if (ALLOWED_ORIGINS.includes(origin)) {
+            return callback(null, true);
+        }
+
+        // Allow any localhost or local IP port for dev convenience
+        if (LOCAL_DEV_REGEX.test(origin)) {
+            return callback(null, true);
+        }
+
+        // Allow any vercel deployment preview URLs dynamically
+        if (VERCEL_PREVIEW_REGEX.test(origin)) {
+            return callback(null, true);
+        }
+
+        // Disallow origin cleanly without breaking OPTIONS preflight status codes
+        callback(null, false);
     },
     credentials: true,
     methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
+    optionsSuccessStatus: 204
 }));
 
 // ─── Body parsers with size limits ─────────────────────────────────────────

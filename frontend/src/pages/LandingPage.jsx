@@ -43,8 +43,8 @@ export default function LandingPage() {
 
       {/* ─── NAVBAR ────────────────────────────────────────────────────────── */}
       <header className="sticky top-0 z-30 border-b border-[#e2e8f0]/80 dark:border-gray-800/85 bg-white/80 dark:bg-surface-dark/85 backdrop-blur-md transition-colors">
-        <div className="max-w-7xl mx-auto px-6 h-14 flex items-center justify-between">
-          <div className="flex items-center gap-8">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 h-14 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-3 sm:gap-8 shrink-0">
             <Logo />
             
             {/* Nav links */}
@@ -72,13 +72,13 @@ export default function LandingPage() {
             )}
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
             <ThemeToggle />
             {status === "authed" ? (
               <>
                 <Link
                   to="/dashboard"
-                  className="btn bg-primary-600 hover:bg-primary-700 text-white shadow-sm shadow-primary-600/20 px-4 py-2 text-sm font-semibold"
+                  className="btn bg-primary-600 hover:bg-primary-700 text-white shadow-sm shadow-primary-600/20 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold whitespace-nowrap"
                 >
                   Go to Dashboard
                 </Link>
@@ -87,13 +87,13 @@ export default function LandingPage() {
               <>
                 <Link
                   to="/login"
-                  className="text-[#64748b] hover:text-[#0f172a] dark:text-gray-400 dark:hover:text-gray-200 text-sm font-semibold px-4 py-2"
+                  className="text-[#64748b] hover:text-[#0f172a] dark:text-gray-400 dark:hover:text-gray-200 text-xs sm:text-sm font-semibold px-2 sm:px-4 py-1.5 sm:py-2 whitespace-nowrap"
                 >
                   Log in
                 </Link>
                 <Link
                   to="/register"
-                  className="btn bg-primary-600 hover:bg-primary-700 text-white shadow-sm shadow-primary-600/20 px-4 py-2 text-sm font-semibold"
+                  className="btn bg-primary-600 hover:bg-primary-700 text-white shadow-sm shadow-primary-600/20 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold whitespace-nowrap"
                 >
                   Get Started Free
                 </Link>

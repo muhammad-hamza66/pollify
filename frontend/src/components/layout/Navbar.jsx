@@ -29,7 +29,7 @@ export default function Navbar({ onMenuClick }) {
 
   return (
     <header className="sticky top-0 z-30 h-14 border-b border-[#e2e8f0] dark:border-gray-800 bg-white/80 dark:bg-surface-dark/80 backdrop-blur-lg">
-      <div className="h-full flex items-center gap-4 px-4 lg:px-6 max-w-[1360px] mx-auto">
+      <div className="h-full flex items-center gap-2 sm:gap-4 px-3 sm:px-4 lg:px-6 max-w-[1360px] mx-auto">
         <button
           className="lg:hidden p-2 -ml-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
           onClick={onMenuClick}
@@ -64,7 +64,7 @@ export default function Navbar({ onMenuClick }) {
           </form>
         )}
 
-        <div className="ml-auto flex items-center gap-1">
+        <div className="ml-auto flex items-center gap-1 sm:gap-2">
           <ThemeToggle />
           {status === "authed" ? (
             <>
@@ -118,16 +118,16 @@ export default function Navbar({ onMenuClick }) {
               </div>
             </>
           ) : (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
               <Link
                 to="/login"
-                className="btn px-3 py-2 text-sm font-medium text-[#64748b] dark:text-gray-300 hover:text-[#0f172a] dark:hover:text-white"
+                className="btn px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-[#64748b] dark:text-gray-300 hover:text-[#0f172a] dark:hover:text-white whitespace-nowrap"
               >
                 Log in
               </Link>
               <Link
                 to="/register"
-                className="btn bg-primary-600 text-white hover:bg-primary-700 px-4 py-2 text-sm shadow-sm shadow-primary-600/20"
+                className="btn bg-primary-600 text-white hover:bg-primary-700 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm shadow-sm shadow-primary-600/20 whitespace-nowrap"
               >
                 Sign up
               </Link>
